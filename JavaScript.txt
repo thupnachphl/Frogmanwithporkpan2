@@ -1,0 +1,68 @@
+function updateCart() {
+    let cartItemsDiv = document.getElementById("cart-items");
+    cartItemsDiv.innerHTML = "";
+    let totalPrice = 0;
+
+    for (let name in cart) {
+        let item = cart[name];
+        let itemTotal = item.price * item.quantity;
+        totalPrice += itemTotal;
+
+        let cartItemDiv = document.createElement("div");
+        cartItemDiv.classList.add("cart-item");
+        cartItemDiv.innerHTML = `
+            <span>${name} (${item.quantity} ชิ้น)</span>
+            <span>${itemTotal} บาท</span>
+            <button class="remove-btn" onclick="removeFromCart('${name}')">❌</button>
+        `;
+        cartItemsDiv.appendChild(cartItemDiv);
+    }
+
+    document.getElementById("total-price").textContent = totalPrice;
+}
+
+// ฟังก์ชันแสดงฟอร์มลูกค้า
+function showCustomerDetails() {
+    if (Object.keys(cart).length === 0) {
+        alert("⚠️ กรุณาเลือกสินค้าในตะกร้าก่อนทำการสั่งซื้อ!");
+        return;
+    }
+    document.getElementById("cart").style.display = "none";
+    document.getElementById("customer-details").style.display = "block";
+}
+
+// ฟังก์ชันสั่งซื้อผ่าน LINE
+function placeOrder() {
+    let name = document.getElementById("customer-name").value;
+    let phone = document.getElementById("customer-phone").value;
+    let address = document.getElementById("customer-address").value;
+
+    if (!name || !phone || !address) {
+        alert("⚠️ กรุณากรอกข้อมูลให้ครบถ้วน!");
+        return;
+    }
+
+    let orderSummary = "🛒 รายการสั่งซื้อ:\n";
+    let totalPrice = 0;
+
+    for (let name in cart) {
+        let item = cart[name];
+        let itemTotal = item.price * item.quantity;
+        totalPrice += itemTotal;
+        orderSummary += `✅ ${name} (${item.quantity} ชิ้น) - ${itemTotal} บาท\n`;
+    }
+
+    orderSummary += `\n💰 ราคารวมทั้งหมด: ${totalPrice} บาท\n`;
+    orderSummary += `\n👤 ชื่อ: ${name}\n📞 เบอร์โทร: ${phone}\n🏡 ที่อยู่: ${address}`;
+
+    let message = encodeURIComponent(orderSummary);
+    let lineUrl = `https://line.me/R/msg/text/?${message}`; // ใช้ LINE URL Scheme
+
+    window.open(lineUrl, "_blank");
+
+    // เคลียร์ตะกร้า
+    cart = {};
+    updateCart();
+    document.getElementById("customer-details").style.display = "none";
+    alert("✅ ส่งคำสั่งซื้อเรียบร้อยแล้ว!");
+}
